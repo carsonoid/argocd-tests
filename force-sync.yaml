@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: force-sync-test-app
+  namespace: argocd
+spec:
+  entrypoint: argocd-force-sync
+  arguments:
+    parameters:
+    - name: app_name
+      value: test-app
+  templates:
+  # - name:  argocd-force-sync
+  #   inputs:
+  #     parameters:
+  #     - name: app_name
+  #   container:
+  #     image: argoproj/argocd:v1.3.6
+  #     command: ["/usr/local/bin/argocd"]
+  #     args:
+  #     - --server
+  #     - argocd-server.argocd.svc.cluster.local.
+  #     - --insecure
+  #     - app
+  #     - sync
+  #     - --force
+  #     - "{{inputs.parameters.app_name}}"
+  #     env:
+  #     - name: ARGOCD_AUTH_TOKEN
+  #       valueFrom:
+  #         secretKeyRef:
+  #           name: argocd-secret
+  #           key: admin.password.test
+  - name: argocd-force-sync
+    inputs:
+      parameters:
+      - name: app_name
+    script:
+      image: argoproj/argocd:v1.3.6
+      env:
+      - name: ARGOCDPASS
+        valueFrom:
+          secretKeyRef:
+            name: argocd-secret
+            key: admin.password.test
+      command: [bash]
+      source: |
+        argocd --insecure login argocd-server.argocd.svc.cluster.local. --username admin --password $ARGOCDPASS
+        argocd --insecure app sync --force "{{inputs.parameters.app_name}}"
