@@ -52,6 +52,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: force-sync-test-app
+  namespace: argocd
 spec:
   template:
     spec:
